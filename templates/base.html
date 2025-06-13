@@ -3,7 +3,6 @@
 <head>
     <meta charset="UTF-8">
     <title>{% block title %}KVM 资源控制器{% endblock %}</title>
-    <!-- 引入 Bootstrap CSS -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     {% block styles %}{% endblock %}
 </head>
@@ -18,8 +17,14 @@
                 </button>
                 <div class="collapse navbar-collapse" id="navbarNav">
                     <ul class="navbar-nav">
-                        <li class="nav-item"><a class="nav-link" href="/">服务器列表</a></li>
-                        <li class="nav-item"><a class="nav-link" href="/kvm/list">KVM 列表</a></li>
+                        {# --- 修改开始 --- #}
+                        <li class="nav-item">
+                            <a class="nav-link {% if active_page == 'servers' %}active{% endif %}" href="/">服务器列表</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link {% if active_page == 'kvm_list' %}active{% endif %}" href="/kvm/list">KVM 列表</a>
+                        </li>
+                        {# --- 修改结束 --- #}
                     </ul>
                 </div>
             </div>
@@ -35,7 +40,6 @@
         <p>&copy; 2025 KVM Resource Controller</p>
     </footer>
 
-    <!-- 引入 Bootstrap JS（可选） -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     {% block scripts %}{% endblock %}
 </body>

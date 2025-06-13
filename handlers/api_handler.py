@@ -116,11 +116,17 @@ def _get_remote_metric(ip, cmd: str):
 @api_bp.route('/kvm/list', methods=['GET'])
 def list_kvm_vms():
     host_ip = request.args.get('host')
+    # 当没有 host 参数时，我们仍然可以渲染页面，但可能是个空列表或提示
     if not host_ip:
-        return jsonify({"error": "Missing host IP"}), 400
+        # 即使没有 host_ip，也渲染页面并标记导航
+        return render_template('kvm_list.html', host_ip=None, vms=[], active_page='kvm_list')
 
     try:
         vms = get_all_vms_info(host_ip)
-        return render_template('kvm_list.html', host_ip=host_ip, vms=vms)
+        # --- 修改开始 --- #
+        # 传递 active_page 变量到模板
+        return render_template('kvm_list.html', host_ip=host_ip, vms=vms, active_page='kvm_list')
+        # --- 修改结束 --- #
     except Exception as e:
-        return jsonify({"error": str(e)}), 500
+        # 出错时也可以考虑渲染错误页面，并标记导航
+        return render_template('kvm_list.html', error=str(e), active_page='kvm_list')

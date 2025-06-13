@@ -10,7 +10,10 @@ app.register_blueprint(api_bp)
 def index():
     data = get_servers_data()  # ✅ 获取原始数据
     servers = data.get("servers", [])
-    return render_template('index.html', servers=servers)
+    # --- 修改开始 --- #
+    # 传递 active_page 变量到模板
+    return render_template('index.html', servers=servers, active_page='servers')
+    # --- 修改结束 --- #
 
 if __name__ == '__main__':
     app.run(debug=True, host='0.0.0.0', port=5500)
