@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="WebServers">
+    <option name="servers">
+      <webServer id="c73f5e2c-ba74-43fa-a597-f853be2f0198" name="10.0.10.26">
+        <fileTransfer rootFolder="/home/kvm-resource-controller" accessType="SFTP" host="10.0.10.26" port="22" sshConfigId="686d8e64-95b3-4635-ae0c-8ae556d7082b" sshConfig="root@10.0.10.26:22 password">
+          <advancedOptions>
+            <advancedOptions dataProtectionLevel="Private" keepAliveTimeout="0" passiveMode="true" shareSSLContext="true" />
+          </advancedOptions>
+        </fileTransfer>
+      </webServer>
+    </option>
+  </component>
+</project>

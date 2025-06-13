@@ -1,0 +1,11 @@
+Flask>=2.0.0
+PyYAML>=5.4
+requests>=2.25
+paramiko>=2.11.0 --only-binary :all:
+libvirt-python>=8.0.0  # 注意：仍需系统依赖 libvirt-dev pkg-config
+
+# 避免编译的 PyNaCl 和 bcrypt（paramiko 依赖）
+cffi>=1.15.1
+wheel>=0.35.1
+setuptools-rust>=1.1.2  # 使用当前可用最高版本
+psutil>=7.0.0
