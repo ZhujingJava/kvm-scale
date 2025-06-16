@@ -1,8 +1,11 @@
 default_ssh_username: root
 default_ssh_key_path: ~/.ssh/id_rsa
+# 为没有元数据的VM提供默认策略
+default_vm_policy:
+  priority: 5 # 默认优先级最低
+  policy: "compressible" # 默认可被压缩
 servers:
   10.0.11.1:
-
     libvirt_uri: "qemu+ssh://root@10.0.11.1/system"
   10.0.12.1:
     libvirt_uri: "qemu+ssh://root@10.0.12.1/system"

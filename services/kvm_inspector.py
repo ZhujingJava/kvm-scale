@@ -140,3 +140,37 @@ def get_all_vms_info(host_ip):
     finally:
         conn.close()
 
+
+def get_vm_policy_from_metadata(domain):
+    """
+    从虚拟机的 XML 元数据中解析伸缩策略。
+    :param domain: libvirt domain object
+    :return: 一个包含策略的字典, e.g., {'priority': 3, 'policy': 'elastic'}
+    """
+    try:
+        # 获取完整的 XML 定义
+        xml_desc = domain.XMLDesc(0)
+        root = ET.fromstring(xml_desc)
+
+        # 定义我们的命名空间
+        ns = {'scale': 'http://kvm-scale.local/scale'}
+
+        metadata = root.find('metadata')
+        if metadata is None:
+            return {}  # 没有 metadata 标签
+
+        priority_tag = metadata.find('scale:priority', ns)
+        policy_tag = metadata.find('scale:policy', ns)
+
+        policy = {}
+        if priority_tag is not None and priority_tag.text.isdigit():
+            policy['priority'] = int(priority_tag.text)
+
+        if policy_tag is not None:
+            policy['policy'] = policy_tag.text
+
+        return policy
+
+    except Exception as e:
+        print(f"解析虚拟机 {domain.name()} 的元数据失败: {e}")
+        return {}
