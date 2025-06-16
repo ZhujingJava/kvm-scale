@@ -174,3 +174,75 @@ def get_vm_policy_from_metadata(domain):
     except Exception as e:
         print(f"解析虚拟机 {domain.name()} 的元数据失败: {e}")
         return {}
+
+
+def check_host_has_enough_resources(conn: libvirt.virConnect, needed_cpus: int = 0, needed_mem_kb: int = 0) -> bool:
+    """
+    检查宿主机是否有足够的剩余资源。
+    简单模型：剩余CPU = 总CPU - 已分配给VM的CPU总数
+    """
+    host_info = conn.getInfo()
+    total_host_cpus = host_info[2]
+
+    allocated_cpus = 0
+    all_domains = conn.listAllDomains()
+    for domain in all_domains:
+        if domain.isActive():
+            allocated_cpus += domain.info()[3]  # maxVcpus
+
+    available_cpus = total_host_cpus - allocated_cpus
+    print(f"Host Resource Check: Total={total_host_cpus}, Allocated={allocated_cpus}, Available={available_cpus}")
+
+    return available_cpus >= needed_cpus
+
+
+# 这两个是新函数，请将它们添加到 services/kvm_inspector.py 文件中
+
+def _get_vm_details(domain):
+    """一个辅助函数，用于从 libvirt domain 对象中提取所需信息。"""
+    if not domain.isActive():
+        state = 'shutdown'
+    else:
+        state = 'running'
+
+    # info() 返回: state, maxMem, memory, nrVirtCpu, cpuTime
+    info = domain.info()
+
+    return {
+        "name": domain.name(),
+        "uuid": domain.UUIDString(),
+        "state": state,
+        "vcpu": info[3],
+        "memory_mb": info[2] // 1024,  # 将 KiB 转换为 MB
+    }
+
+
+def get_all_vms_on_host(host_ip):
+    """
+    获取指定 KVM 主机上的所有虚拟机及其详细信息。
+    这是 api_handler.py 需要导入的核心函数。
+    """
+    conn = None
+    vms_list = []
+    try:
+        # 复用已有的 connect_libvirt 函数来建立连接
+        conn = connect_libvirt(host_ip)
+        if not conn:
+            # 如果连接失败，connect_libvirt 内部会打印错误，这里直接返回空列表
+            raise ConnectionError(f"无法连接到 {host_ip} 的 libvirt 服务。")
+
+        # conn.listAllDomains() 获取所有已定义的虚拟机（包括运行中和已关闭的）
+        domains = conn.listAllDomains()
+        for domain in domains:
+            details = _get_vm_details(domain)
+            vms_list.append(details)
+
+    except Exception as e:
+        print(f"在 {host_ip} 上获取虚拟机列表时出错: {e}")
+        # 向上抛出异常，让 API 层来处理并返回错误信息给前端
+        raise e
+    finally:
+        if conn:
+            conn.close()
+
+    return vms_list

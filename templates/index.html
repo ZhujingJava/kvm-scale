@@ -1,16 +1,10 @@
-{% extends "base.html" %}
-{% block title %}物理服务器列表{% endblock %}
-
-{% block content %}
-<h1>物理服务器列表</h1>
-
-<table class="table table-bordered table-striped">
-    <thead class="table-dark">
+<table class="table table-hover" id="servers-table">
+    <thead>
         <tr>
-            <th>IP 地址</th>
-            <th>CPU 使用率 (%)</th>
-            <th>内存使用率 (%)</th>
-            <th>磁盘使用率 (%)</th>
+            <th>IP地址</th>
+            <th>CPU</th>
+            <th>内存</th>
+            <th>磁盘</th> <th>状态</th>
             <th>操作</th>
         </tr>
     </thead>
@@ -18,14 +12,19 @@
         {% for server in servers %}
         <tr>
             <td>{{ server.ip }}</td>
-            <td>{{ server.cpu_usage if server.cpu_usage is not none else 'N/A' }}</td>
-            <td>{{ server.memory_usage if server.memory_usage is not none else 'N/A' }}</td>
-            <td>{{ server.disk_usage if server.disk_usage is not none else 'N/A' }}</td>
-            <td><a href="/kvm/list?host={{ server.ip }}" class="btn btn-primary btn-sm">查看 KVM 列表</a></td>
+            <td>{{ server.cpu }}</td>
+            <td>{{ server.memory }}</td>
+            <td>{{ server.disk }}</td> <td>
+                {% if server.status == 'active' %}
+                <span class="badge bg-success">在线</span>
+                {% else %}
+                <span class="badge bg-danger">离线</span>
+                {% endif %}
+            </td>
+            <td>
+                <a href="{{ url_for('kvm_list_page', host=server.ip) }}" class="btn btn-primary btn-sm">查看VM</a>
+            </td>
         </tr>
         {% endfor %}
     </tbody>
 </table>
-
-<a href="/kvm/list?host=mock" class="btn btn-secondary mt-3">访问模拟 KVM 页面</a>
-{% endblock %}

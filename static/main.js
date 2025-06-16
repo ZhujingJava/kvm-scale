@@ -1,57 +1,53 @@
-// static/main.js
+// 文件: static/main.js
 
-document.addEventListener("DOMContentLoaded", () => {
-    // 获取服务器列表
-    fetch("/api/servers")
-        .then(res => res.json())
-        .then(data => {
-            const tbody = document.querySelector("#server-table tbody");
-            data.servers.forEach(server => {
-                const tr = document.createElement("tr");
-                const tdIp = document.createElement("td");
-                const tdAction = document.createElement("td");
-                const link = document.createElement("a");
+document.addEventListener("DOMContentLoaded", function() {
+    const kvmTable = document.getElementById("kvm-table");
 
-                tdIp.textContent = server.ip;
-                link.textContent = "查看 KVM 列表";
-                link.href = "#";
-                link.onclick = () => loadKVMList(server.ip);
+    if (kvmTable) {
+        const tbody = kvmTable.querySelector("tbody");
 
-                tdAction.appendChild(link);
-                tr.appendChild(tdIp);
-                tr.appendChild(tdAction);
-                tbody.appendChild(tr);
-            });
-        });
+        // 从 body 的 data-host-ip 属性获取宿主机 IP
+        const hostIp = document.body.dataset.hostIp;
 
-    function loadKVMList(ip) {
-        document.getElementById("current-host").textContent = ip;
-        const kvmTableBody = document.querySelector("#kvm-table tbody");
-        kvmTableBody.innerHTML = "<tr><td colspan='5'>加载中...</td></tr>";
+        if (hostIp && hostIp !== "mock") {
+            tbody.innerHTML = '<tr><td colspan="5" class="text-center">正在加载...</td></tr>';
 
-        fetch(`/api/kvm/list?host=${ip}`)
-            .then(res => res.json())
-            .then(data => {
-                kvmTableBody.innerHTML = "";
-                if (!data.vms || data.vms.length === 0) {
-                    kvmTableBody.innerHTML = "<tr><td colspan='5'>无虚拟机</td></tr>";
-                    return;
-                }
+            // --- 修正API请求地址 ---
+            fetch(`/kvm/list?host=${hostIp}`)
+                .then(response => response.json())
+                .then(data => {
+                    tbody.innerHTML = ""; // 清空表格
 
-                data.vms.forEach(vm => {
-                    const tr = document.createElement("tr");
-                    tr.innerHTML = `
-                        <td>${vm.name}</td>
-                        <td>${vm.uuid}</td>
-                        <td>${vm.state}</td>
-                        <td>${vm.memory}</td>
-                        <td>${vm.nr_virt_cpu}</td>
-                    `;
-                    kvmTableBody.appendChild(tr);
+                    if (data.error) {
+                        tbody.innerHTML = `<tr><td colspan="5" class="text-center text-danger">加载失败: ${data.error}</td></tr>`;
+                        return;
+                    }
+
+                    if (!data || data.length === 0) {
+                        tbody.innerHTML = '<tr><td colspan="5" class="text-center">该主机上没有找到虚拟机。</td></tr>';
+                        return;
+                    }
+
+                    data.forEach(vm => {
+                        const row = document.createElement("tr");
+                        let statusBadge = (vm.state === 'running')
+                            ? '<span class="badge bg-success">运行中</span>'
+                            : '<span class="badge bg-secondary">已关机</span>';
+
+                        row.innerHTML = `
+                            <td>${vm.name}</td>
+                            <td>${statusBadge}</td>
+                            <td>${vm.vcpu}</td>
+                            <td>${vm.memory_mb} MB</td>
+                            <td><button class="btn btn-danger btn-sm" disabled>关机</button></td>
+                        `;
+                        tbody.appendChild(row);
+                    });
+                })
+                .catch(error => {
+                    console.error('Error fetching KVM data:', error);
+                    tbody.innerHTML = `<tr><td colspan="5" class="text-center text-danger">网络请求失败，请检查应用日志。</td></tr>`;
                 });
-            })
-            .catch(err => {
-                kvmTableBody.innerHTML = `<tr><td colspan='5'>加载失败: ${err.message}</td></tr>`;
-            });
+        }
     }
 });
