@@ -20,12 +20,41 @@
             <tr>
                 <td>{{ vm.name }}</td>
                 <td>
-                    {% if vm.state == 1 %}运行中{% elif vm.state == 3 %}已关机{% else %}未知{% endif %}
+                    {% if vm.state == 1 %}
+                        <span class="badge bg-success">运行中</span>
+                    {% elif vm.state == 3 %}
+                        <span class="badge bg-secondary">已关机</span>
+                    {% else %}
+                        <span class="badge bg-warning text-dark">未知</span>
+                    {% endif %}
                 </td>
+
                 <td>{{ vm.curr_mem_gb }} / {{ vm.max_mem_gb }}</td>
                 <td>{{ vm.curr_vcpu }} / {{ vm.max_vcpu }}</td>   <!-- 显示 curr / max -->
-                <td>{{ '是' if vm.has_qemu_ga else '否' }}</td>
-                <td>{{ '是' if vm.elastic_memory else '否' }}</td>
+                <td>
+                    {% if vm.has_qemu_ga %}
+                        <span class="badge bg-success">是</span>
+                    {% else %}
+                        <span class="badge bg-danger">否</span>
+                    {% endif %}
+                </td>
+
+                <td>
+                    {% if vm.elastic_memory %}
+                        <span class="badge bg-success">是</span>
+                    {% else %}
+                        <span class="badge bg-danger">否</span>
+                    {% endif %}
+                </td>
+
+                <td>
+                    {% if vm.vcpu_mode == 'elastic' %}
+                        <span class="badge bg-primary">弹性</span>
+                    {% else %}
+                        <span class="badge bg-secondary">静态</span>
+                    {% endif %}
+                </td>
+
 
             </tr>
         {% endfor %}

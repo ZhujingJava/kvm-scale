@@ -14,5 +14,5 @@ servers:
   10.0.2.254:
     libvirt_uri: "qemu+ssh://root@10.0.2.254/system"
   10.0.10.1:
-    libvirt_uri: "qemu+ssh://root@10.0.10.254/system"
+    libvirt_uri: "qemu+ssh://root@10.0.10.1/system"
     ssh_port: 16666
