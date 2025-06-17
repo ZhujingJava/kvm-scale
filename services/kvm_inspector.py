@@ -168,6 +168,34 @@ def get_all_vms_info(host_ip):
                 cpu_usage = get_domain_cpu_usage(domain) if info[0] == libvirt.VIR_DOMAIN_RUNNING else 0.0
                 mem_usage = get_domain_memory_usage(domain) if info[0] == libvirt.VIR_DOMAIN_RUNNING else 0.0
 
+                ip_address = ""
+                if qemu_ga:
+                    # 如果 QEMU GA 存在，尝试获取 eth0 的 IP 地址
+                    try:
+                        if domain.isActive():
+                            # 获取虚拟机的接口信息
+                            interfaces = domain.interfaceAddresses(libvirt.VIR_DOMAIN_INTERFACE_ADDRESSES_SRC_AGENT, 0)
+                            # 优先查找 eth0 接口
+                            if 'eth0' in interfaces:
+                                value = interfaces['eth0']
+                                if 'addrs' in value:
+                                    for addr in value['addrs']:
+                                        # 只获取 IPv4 地址
+                                        if addr['type'] == libvirt.VIR_IP_ADDR_TYPE_IPV4:
+                                            ip_address = addr['addr']
+                                            break
+                            else:
+                                # 如果没有 eth0，回退到第一个有地址的接口
+                                for key, value in interfaces.items():
+                                    if 'addrs' in value:
+                                        for addr in value['addrs']:
+                                            if addr['type'] == libvirt.VIR_IP_ADDR_TYPE_IPV4:
+                                                ip_address = addr['addr']
+                                                break
+                                        if ip_address:
+                                            break
+                    except Exception as e:
+                        print(f"[WARN] Failed to get IP address for {domain.name()}: {e}")
                 vms.append({
                     "name": domain.name(),
                     "uuid": domain.UUIDString(),
@@ -184,6 +212,7 @@ def get_all_vms_info(host_ip):
                     "elastic_memory": elastic_memory,
                     "cpu_usage_percent": cpu_usage,
                     "mem_usage_percent": mem_usage,
+                    "ip_address": ip_address  # 添加IP地址字段
                 })
 
             except ET.ParseError as pe:

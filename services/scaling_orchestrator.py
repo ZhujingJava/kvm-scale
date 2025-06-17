@@ -1,6 +1,6 @@
 # services/scaling_orchestrator.py
 import libvirt
-from . import kvm_inspector, kvm_scaler, monitoring_agent, server_manager
+from . import kvm_inspector, scaler, monitoring_agent, server_manager
 
 
 def handle_scaling_request(vm_name: str, host_ip: str, alert: dict):
@@ -41,7 +41,7 @@ def handle_scaling_request(vm_name: str, host_ip: str, alert: dict):
             # [6] 执行扩容
             new_vcpu_count = current_vcpu + needed_cpus
             print(f"Step [6]: Scaling up '{vm_name}' to {new_vcpu_count} vCPUs...")
-            success = kvm_scaler.adjust_vcpu(host_ip, target_domain.UUIDString(), new_vcpu_count)
+            success = scaler.adjust_vcpu(host_ip, target_domain.UUIDString(), new_vcpu_count)
             return {"status": "success" if success else "error", "action": "scaled_up_directly"}
 
         # [4] 宿主机资源不足 -> 找可降级的 VM
@@ -65,7 +65,7 @@ def handle_scaling_request(vm_name: str, host_ip: str, alert: dict):
             print("Step [6] (Post-compression): Host now has enough resources.")
             new_vcpu_count = current_vcpu + needed_cpus
             print(f"Step [6]: Scaling up '{vm_name}' to {new_vcpu_count} vCPUs...")
-            success = kvm_scaler.adjust_vcpu(host_ip, target_domain.UUIDString(), new_vcpu_count)
+            success = scaler.adjust_vcpu(host_ip, target_domain.UUIDString(), new_vcpu_count)
             return {"status": "success" if success else "error", "action": "scaled_up_after_compression"}
         else:
             return {"status": "failed", "message": "Failed to free up enough resources by compressing other VMs."}
