@@ -13,7 +13,7 @@ servers:
 
     libvirt_uri: "qemu+ssh://root@10.0.0.4/system"
   10.0.6.17:
-    libvirt_uri: "qemu+ssh://root@10.0.16.17/system"
+    libvirt_uri: "qemu+ssh://root@10.0.6.17/system"
   10.0.2.254:
     libvirt_uri: "qemu+ssh://root@10.0.2.254/system"
   10.0.10.1:

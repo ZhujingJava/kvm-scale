@@ -1,4 +1,6 @@
 from flask import Flask, render_template, request  # <-- 已在此处添加 request
+
+from handlers.alert_handler import alert_bp
 from handlers.api_handler import api_bp, get_servers_data
 import logging
 
@@ -10,7 +12,7 @@ app.logger.setLevel(logging.INFO)
 
 # 注册 API 蓝图，并添加 /api 前缀
 app.register_blueprint(api_bp, url_prefix='/api')
-
+app.register_blueprint(alert_bp, url_prefix='/api')  # 👈 注册告警蓝图
 
 @app.route('/')
 def index():

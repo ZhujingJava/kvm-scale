@@ -1,30 +1,106 @@
-<table class="table table-hover" id="servers-table">
-    <thead>
-        <tr>
-            <th>IP地址</th>
-            <th>CPU</th>
-            <th>内存</th>
-            <th>磁盘</th> <th>状态</th>
-            <th>操作</th>
-        </tr>
-    </thead>
-    <tbody>
-        {% for server in servers %}
-        <tr>
-            <td>{{ server.ip }}</td>
-            <td>{{ server.cpu }}</td>
-            <td>{{ server.memory }}</td>
-            <td>{{ server.disk }}</td> <td>
-                {% if server.status == 'active' %}
-                <span class="badge bg-success">在线</span>
-                {% else %}
-                <span class="badge bg-danger">离线</span>
-                {% endif %}
-            </td>
-            <td>
-                <a href="{{ url_for('kvm_list_page', host=server.ip) }}" class="btn btn-primary btn-sm">查看VM</a>
-            </td>
-        </tr>
-        {% endfor %}
-    </tbody>
-</table>
+<!-- templates/index.html -->
+
+{% extends "base.html" %}
+{% block title %}服务器资源监控{% endblock %}
+
+{% block content %}
+    <div class="mt-4">
+        <div class="d-flex justify-content-between align-items-center mb-3">
+            <h4>服务器资源监控</h4>
+            <button id="refresh-btn" class="btn btn-outline-secondary btn-sm">
+                <i class="bi bi-arrow-clockwise"></i> 刷新
+            </button>
+        </div>
+
+        <table class="table table-hover table-striped" id="servers-table">
+            <thead class="table-dark">
+            <tr>
+                <th>IP 地址</th>
+                <th>CPU 使用率（%）</th>
+                <th>内存（当前内存/最大内存）</th>
+                <th>磁盘使用</th>
+                <th>状态</th>
+                <th>操作</th>
+            </tr>
+            </thead>
+            <tbody>
+            {% for server in servers %}
+                <tr>
+                    <td>{{ server.ip }}</td>
+                    <td>
+                        <div class="progress" style="height: 20px;">
+                            <div class="progress-bar bg-info"
+                                 role="progressbar"
+                                 style="width: {{ server.cpu_percent }}%">
+                                {{ server.cpu_percent }}%
+                            </div>
+                        </div>
+                    </td>
+                    <td>
+                        <div class="progress" style="height: 20px;">
+                            <div class="progress-bar bg-warning"
+                                 role="progressbar"
+                                 style="width: {{ server.mem_usage_percent }}%">
+                                {{ (server.mem_used_mb / 1024) | round(1) }}/{{ (server.mem_total_mb / 1024) | round(1) }}
+                                GB
+                            </div>
+                        </div>
+                    </td>
+                    <td>
+                        {% if server.disk_info and server.disk_info|length > 0 %}
+                            {% for disk in server.disk_info %}
+                                <div class="progress mt-1" style="height: 20px;">
+                                    <div class="progress-bar
+        {% if disk.usage_percent > 90 %}bg-danger
+        {% elif disk.usage_percent > 70 %}bg-warning
+        {% else %}bg-success{% endif %}
+        d-flex align-items-center px-2"
+                                         role="progressbar" style="width: {{ disk.usage_percent }}%; min-width: 40%;">
+        <span class="text-truncate" style="white-space: nowrap;"
+              title="{{ disk.mount_point }}: {{ disk.used_gb }}/{{ disk.total_gb }} GB ({{ disk.usage_percent }}%)">
+            {{ disk.mount_point }}: {{ disk.used_gb }}/{{ disk.total_gb }} GB ({{ disk.usage_percent }}%)
+        </span>
+                                    </div>
+                                </div>
+                            {% endfor %}
+                        {% else %}
+                            <span class="text-muted">无可用磁盘信息</span>
+                        {% endif %}
+                    </td>
+                    <td>
+                        {% if server.status == 'active' %}
+                            <span class="badge bg-success">在线</span>
+                        {% else %}
+                            <span class="badge bg-danger">离线</span>
+                        {% endif %}
+                    </td>
+                    <td>
+                        {% if server.status == 'active' %}
+                            <a href="{{ url_for('kvm_list_page', host=server.ip) }}" class="btn btn-primary btn-sm">
+                                <i class="bi bi-eye"></i> 查看VM
+                            </a>
+                        {% else %}
+                            <button class="btn btn-secondary btn-sm" disabled title="主机离线">
+                                <i class="bi bi-eye-slash"></i> 查看VM
+                            </button>
+                        {% endif %}
+                    </td>
+                </tr>
+            {% endfor %}
+            </tbody>
+        </table>
+    </div>
+{% endblock %}
+
+{% block scripts %}
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+            const refreshBtn = document.getElementById("refresh-btn");
+            if (refreshBtn) {
+                refreshBtn.addEventListener("click", () => {
+                    location.reload();
+                });
+            }
+        });
+    </script>
+{% endblock %}

@@ -2,64 +2,32 @@
 {% block title %}KVM 虚拟机列表 - {{ host_ip }}{% endblock %}
 
 {% block content %}
-    <h2>{{ host_ip | default("10.0.11.1") }} 上的 KVM 虚拟机</h2>
-    <table class="table table-bordered table-striped">
-        <thead class="table-dark">
+<h2>{{ host_ip }} 上的 KVM 虚拟机</h2>
+
+<!-- 表格必须有 id="kvm-table" -->
+<table id="kvm-table" class="table table-bordered table-striped">
+    <thead class="table-dark">
         <tr>
             <th>名称</th>
             <th>状态</th>
-            <th>内存/最大内存 (GB)</th>
-            <th>vCPU 配置(当前/最大)</th>    <!-- 修改这一列标题 -->
-            <th>QEMU GA</th>
-            <th>弹性内存</th>
-
+            <th>CPU</th>
+            <th>当前内存 (MB)</th>
+{#            <th>最大内存 (MB)</th>#}
+            <th>操作</th>
         </tr>
-        </thead>
-        <tbody>
-        {% for vm in vms %}
-            <tr>
-                <td>{{ vm.name }}</td>
-                <td>
-                    {% if vm.state == 1 %}
-                        <span class="badge bg-success">运行中</span>
-                    {% elif vm.state == 3 %}
-                        <span class="badge bg-secondary">已关机</span>
-                    {% else %}
-                        <span class="badge bg-warning text-dark">未知</span>
-                    {% endif %}
-                </td>
+    </thead>
+    <tbody>
+        <!-- 数据由 main.js 异步填充 -->
+    </tbody>
+</table>
+{% endblock %}
 
-                <td>{{ vm.curr_mem_gb }} / {{ vm.max_mem_gb }}</td>
-                <td>{{ vm.curr_vcpu }} / {{ vm.max_vcpu }}</td>   <!-- 显示 curr / max -->
-                <td>
-                    {% if vm.has_qemu_ga %}
-                        <span class="badge bg-success">是</span>
-                    {% else %}
-                        <span class="badge bg-danger">否</span>
-                    {% endif %}
-                </td>
+{% block scripts %}
+<!-- 注入 host_ip 到页面中 -->
+<script>
+  document.body.dataset.hostIp = "{{ host_ip }}";
+</script>
 
-                <td>
-                    {% if vm.elastic_memory %}
-                        <span class="badge bg-success">是</span>
-                    {% else %}
-                        <span class="badge bg-danger">否</span>
-                    {% endif %}
-                </td>
-
-                <td>
-                    {% if vm.vcpu_mode == 'elastic' %}
-                        <span class="badge bg-primary">弹性</span>
-                    {% else %}
-                        <span class="badge bg-secondary">静态</span>
-                    {% endif %}
-                </td>
-
-
-            </tr>
-        {% endfor %}
-        </tbody>
-    </table>
-
-    <a href="/" class="btn btn-secondary mt-3">返回首页</a>
+<!-- 加载 main.js -->
+<script src="{{ url_for('static', filename='main.js') }}"></script>
 {% endblock %}

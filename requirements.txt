@@ -9,3 +9,4 @@ cffi>=1.15.1
 wheel>=0.35.1
 setuptools-rust>=1.1.2  # 使用当前可用最高版本
 psutil>=7.0.0
+asyncssh
