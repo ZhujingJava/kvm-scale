@@ -4,6 +4,8 @@ document.addEventListener("DOMContentLoaded", function () {
     if (kvmTable) {
         const tbody = kvmTable.querySelector("tbody");
         const hostIp = document.body.dataset.hostIp;
+        const totalCpuEl = document.getElementById("total-cpu");
+        const totalMemEl = document.getElementById("total-memory");
 
         if (!hostIp || hostIp === "mock") {
             console.warn("❌ hostIp 为空或为 mock，不加载数据");
@@ -11,6 +13,10 @@ document.addEventListener("DOMContentLoaded", function () {
         }
 
         tbody.innerHTML = '<tr><td colspan="6" class="text-center">正在加载...</td></tr>';
+
+        // 初始化总计
+        let totalRunningCpu = 0;
+        let totalRunningMemory = 0;
 
         fetch(`/api/kvm/list?host=${hostIp}`)
             .then(response => {
@@ -32,8 +38,8 @@ document.addEventListener("DOMContentLoaded", function () {
                     const elasticCpu = vm.elastic_vcpu ? `<span class="badge bg-success">支持</span>` : `<span class="badge bg-secondary">不支持</span>`;
                     const elasticMemory = vm.elastic_memory ? `<span class="badge bg-success">支持</span>` : `<span class="badge bg-secondary">不支持</span>`;
                     const isElasticEnabled = vm.elastic_vcpu || vm.elastic_mem_gb ? "" : "disabled";
-                    const qemuGaStatus = vm.has_qemu_ga ? 
-                        '<span class="badge bg-success">已安装</span>' : 
+                    const qemuGaStatus = vm.has_qemu_ga ?
+                        '<span class="badge bg-success">已安装</span>' :
                         '<span class="badge bg-secondary">未安装</span>';
 
                     const row = document.createElement("tr");
@@ -42,12 +48,24 @@ document.addEventListener("DOMContentLoaded", function () {
                         <td>${stateText}</td>
                         <td>${vm.ip_address}</td>
                         <td>当前: ${vm.curr_vcpu} 核 / 最大: ${vm.max_vcpu} 核 ${elasticCpu}</td>
-                        <td>当前: ${Math.round(vm.curr_mem_gb * 1024)} MB / 最大: ${Math.round(vm.max_mem_gb * 1024)} MB ${elasticMemory}</td>
+                        <td>当前: ${Math.round(vm.curr_mem_gb)} GB / 最大: ${Math.round(vm.max_mem_gb)} GB ${elasticMemory}</td>
                         <td>${qemuGaStatus}</td>
                         <td><button class="btn btn-danger btn-sm" ${isElasticEnabled}>扩容</button></td>
                     `;
+
+                    // 累计运行中的虚拟机资源
+                    if (vm.state === 'running') {
+                        totalRunningCpu += vm.curr_vcpu;
+                        totalRunningMemory += Math.round(vm.curr_mem_gb);
+                    }
+
                     tbody.appendChild(row);
                 });
+
+                // 展示总计信息
+                if (totalCpuEl) totalCpuEl.textContent = totalRunningCpu;
+                if (totalMemEl) totalMemEl.textContent = totalRunningMemory;
+
             })
             .catch(err => {
                 console.error("❌ 加载失败:", err);

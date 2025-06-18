@@ -12,7 +12,7 @@
             <th>状态</th>
             <th>ip 地址</th>
             <th>CPU</th>
-            <th>当前内存 (MB)</th>
+            <th>当前内存 </th>
             <th>qemu-agent 状态</th>
 {#            <th>最大内存 (MB)</th>#}
             <th>操作</th>
@@ -21,6 +21,14 @@
     <tbody>
         <!-- 数据由 main.js 异步填充 -->
     </tbody>
+
+<div class="mt-4">
+    <h5>资源使用情况</h5>
+    <div class="alert alert-info d-flex justify-content-between">
+        <span>正在运行的 CPU 总核数：<strong id="total-cpu">0</strong> 核</span>
+        <span>正在运行的内存总量：<strong id="total-memory">0</strong> GB</span>
+    </div>
+</div>
 </table>
 {% endblock %}
 
